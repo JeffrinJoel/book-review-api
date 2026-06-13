@@ -1,33 +1,36 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from schema import BookInfo
+from sqlalchemy.orm import Session
+from database import get_db
+from models import Book
 
 router = APIRouter()
 
-fake_book_db = {}
-
 @router.post("/addbook")
-def addbook (data: BookInfo):
-    if data.bookname in fake_book_db:
+def addbook (data: BookInfo, db: Session = Depends(get_db)):
+    if db.query(Book).filter(Book.bookname == data.bookname).first():
         raise HTTPException(status_code=409, detail="The book already exists")
-    fake_book_db[data.bookname] = {
-        "author" : data.author,
-        "genre" : data.genre
-    }
+    new_book = Book(bookname = data.bookname, author = data.author, genre = data.genre)
+    db.add(new_book)
+    db.commit()
     return {"message": data.bookname + " is successfully added!"}
 
 @router.get("/books")
-def books ():
-    return fake_book_db
+def books (db: Session = Depends(get_db)):
+    return db.query(Book).all()
 
 @router.get("/book/{bookname}")
-def singlebook(bookname: str):
-    if bookname not in fake_book_db:
+def singlebook(bookname: str, db: Session = Depends(get_db)):
+    book = db.query(Book).filter(Book.bookname == bookname).first()
+    if not book:
         raise HTTPException(status_code=404, detail="Book not present")
-    return fake_book_db[bookname]
+    return book
 
 @router.delete("/removebook/{bookname}")
-def removbook(bookname: str):
-    if bookname not in fake_book_db:
+def removbook(bookname: str, db: Session = Depends(get_db)):
+    book = db.query(Book).filter(Book.bookname == bookname).first()
+    if not book:
         raise HTTPException(status_code=404, detail="Book doesnt exist")
-    fake_book_db.pop(bookname)
+    db.delete(book)
+    db.commit()
     return {"message": bookname + " is removed!"}
