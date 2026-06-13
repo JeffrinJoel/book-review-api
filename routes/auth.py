@@ -7,8 +7,6 @@ from models import User
 
 router = APIRouter()
 
-# fake_db ={}
-
 @router.post("/register")
 def register(data : RegisterRequest, db: Session = Depends(get_db)):
     if db.query(User).filter(User.username == data.username).first():
