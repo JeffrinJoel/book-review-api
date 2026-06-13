@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from models import ReviewInfo
+from schema import ReviewInfo
 from routes import books
 
 router = APIRouter()

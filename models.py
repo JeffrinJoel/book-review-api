@@ -1,19 +1,10 @@
-from pydantic import BaseModel, Field
+from sqlalchemy import Column, Integer, String
+from database import Base
 
-class RegisterRequest(BaseModel):
-    email: str
-    username: str
-    password: str
+class User(Base):
+    __tablename__ = "users"
     
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-    
-class BookInfo(BaseModel):
-    bookname: str
-    author: str
-    genre: str
-    
-class ReviewInfo(BaseModel):
-    rating: int = Field(ge=0, le=5)
-    review: str
+    id = Column(Integer, primary_key=True)
+    email = Column(String)
+    username = Column(String)
+    password = Column(String)
